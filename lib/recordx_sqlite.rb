@@ -31,7 +31,7 @@ class RecordxSqlite
     return if col == :id
 
 s = "
-UPDATE headers
+UPDATE #{@table}
 SET #{col}='#{value}'
 WHERE id='#{id}';"
 
@@ -39,6 +39,3 @@ WHERE id='#{id}';"
 
   end
 end
-
-
-r = rs.all.first
