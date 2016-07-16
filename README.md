@@ -2,11 +2,11 @@
 
 ## Example
 
-    require 'recordx-sqlite'
+    require 'recordx_sqlite'
 
     rs = RecordxSqlite.new('/tmp/headers2.db', 'headers')
     r = rs.all.first
-    f.fruit =  'apple'
+    r.fruit =  'apple'
 
 The above example updates the column *fruit* in the 1st record of the database with the value *apple*.
 
