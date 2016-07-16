@@ -18,6 +18,8 @@ class RecordxSqlite
       h2 = h.inject({}) {|r, x| k, v = x; r.merge(k.to_sym => v)}
       RecordX.new(h2, self, h2[:uid]) 
     end
+    
+    @table = table
 
   end
 
