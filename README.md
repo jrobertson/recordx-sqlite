@@ -4,7 +4,7 @@
 
     require 'recordx_sqlite'
 
-    rs = RecordxSqlite.new('/tmp/headers2.db', 'headers')
+    rs = RecordxSqlite.new('/tmp/headers2.db', table: 'headers')
     r = rs.all.first
     r.fruit =  'apple'
 
