@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name = 'recordx_sqlite'
-  s.version = '0.1.2'
+  s.version = '0.1.3'
   s.summary = 'RecordX-SQLite is an object relational mapper primarily designed for updating records in bulk.'
   s.authors = ['James Robertson']
   s.files = Dir['lib/recordx_sqlite.rb']
