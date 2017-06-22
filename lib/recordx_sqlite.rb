@@ -19,9 +19,23 @@ class RecordxSqlite
     
   end
 
+  # note: when using method all() you will need to execute method refresh() 
+  # first if a record had recently been added since the recordset was loaded
+  #
   def all()    
     query(@sql) unless @a
     @a
+  end
+  
+  def create(h={})
+    
+    fields = h.keys
+    values = h.values
+
+    sql = "INSERT INTO #{@table} (#{fields.join(', ')})
+    VALUES (#{(['?'] * fields.length).join(', ')})"
+
+    @db.execute(sql, values)    
   end
   
   def find(id)
