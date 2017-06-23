@@ -9,24 +9,40 @@ require 'recordx'
 class RecordxSqlite
 
   def initialize(dbfile, table: '', primary_key: :id, pk: primary_key, 
-                 sql: 'select * from ' + table)
+                 sql: nil)
         
     @db = SQLite3::Database.new dbfile
 
     @db.results_as_hash = true
-    @table, @primary_key, @sql = table, pk.to_sym, sql
+    
+    if table.is_a? String then
+      
+      @table, @primary_key = table, pk.to_sym
+      
+    elsif table.is_a? Hash 
+      
+      h = table
+      @table = h.keys.first
+      @primary_key = h[@table].keys.first
+      
+      create_table(@table, h[@table]) if @db.table_info(@table).empty?
+            
+    end
+    
+    @sql =  sql || 'select * from ' + @table.to_s
+    
     @a = nil
     
   end
 
-  # note: when using method all() you will need to execute method refresh() 
+  # note: when using method all() you will need to call method refresh() 
   # first if a record had recently been added since the recordset was loaded
   #
   def all()    
     query(@sql) unless @a
     @a
   end
-  
+
   def create(h={})
     
     fields = h.keys
@@ -35,14 +51,16 @@ class RecordxSqlite
     sql = "INSERT INTO #{@table} (#{fields.join(', ')})
     VALUES (#{(['?'] * fields.length).join(', ')})"
 
-    @db.execute(sql, values)    
+    @db.execute(sql, values)
+    
+     :create
   end
-  
+
   def find(id)
     query(@sql) unless @a
     @a.find {|x| x.method(@primary_key).call == id}
   end
-  
+
   def query(sql=@sql)
     
     @sql = sql
@@ -54,7 +72,7 @@ class RecordxSqlite
     end    
     
   end  
-  
+
   def refresh()
     query(@sql)
     'refreshed'
@@ -73,6 +91,24 @@ WHERE #{@primary_key.to_s}='#{id}';"
     @db.execute(s)
 
   end
-    
-end
 
+  private
+
+  def create_table(name, cols)
+    
+    fields = cols.map do |k,v|
+
+      types = { string: :text, integer: :int, float: :real,   date: :date }
+      type = types[v.class.to_s.downcase.to_sym].to_s.upcase
+      "%s %s" % [k.to_s, type]
+
+    end
+
+    sql = "CREATE TABLE %s (\n  %s PRIMARY KEY,\n  %s\n);" % 
+      [name, fields.first, fields[1..-1].join(",\n  ")]
+
+    @db.execute sql
+    
+  end  
+
+end
