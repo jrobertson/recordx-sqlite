@@ -55,10 +55,20 @@ class RecordxSqlite
     
      :create
   end
+  
+  def delete(id)
+    
+    sql = "DELETE FROM #{@table} WHERE #{@primary_key}='#{id}'"
+    @db.execute sql
+    
+    :delete
+  end
 
   def find(id)
+
     query(@sql) unless @a
     @a.find {|x| x.method(@primary_key).call == id}
+    
   end
 
   def query(sql=@sql)
