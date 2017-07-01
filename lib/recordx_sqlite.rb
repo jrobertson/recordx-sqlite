@@ -114,7 +114,7 @@ WHERE #{@primary_key.to_s}='#{id}';"
 
     end
 
-    sql = "CREATE TABLE %s (\n  %s PRIMARY KEY,\n  %s\n);" % 
+    sql = "CREATE TABLE %s (\n  %s PRIMARY KEY NOT NULL,\n  %s\n);" % 
       [name, fields.first, fields[1..-1].join(",\n  ")]
 
     @db.execute sql
