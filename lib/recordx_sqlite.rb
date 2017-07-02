@@ -53,7 +53,7 @@ class RecordxSqlite
 
     @db.execute(sql, values)
     
-     :create
+    :create
   end
   
   def delete(id)
@@ -70,16 +70,25 @@ class RecordxSqlite
     @a.find {|x| x.method(@primary_key).call == id}
     
   end
+  
+  # returns the 1st n rows
+  #
+  def first(n=1)
+   query(@sql + ' LIMIT ' + n.to_s, cache: false)
+  end
 
-  def query(sql=@sql)
+  def query(sql=@sql, cache: true)
     
-    @sql = sql
     rs = @db.query sql
     
-    @a = rs.map do |h| 
+    a = rs.map do |h| 
       h2 = h.inject({}) {|r, x| k, v = x; r.merge(k.to_sym => v)}
       RecordX.new(h2, self, h2[@primary_key]) 
     end    
+    
+    @a = a if cache
+    
+    return a
     
   end  
 
