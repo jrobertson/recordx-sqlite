@@ -30,6 +30,7 @@ class RecordxSqlite
     end
     
     @sql =  sql || 'select * from ' + @table.to_s
+    @default_sql = @sql
     
     @a = nil
     
@@ -39,6 +40,7 @@ class RecordxSqlite
   # first if a record had recently been added since the recordset was loaded
   #
   def all()    
+    @sql = @default_sql
     query(@sql) unless @a
     @a
   end
@@ -75,6 +77,11 @@ class RecordxSqlite
   #
   def first(n=1)
    query(@sql + ' LIMIT ' + n.to_s, cache: false)
+  end
+  
+  def order(dir=:asc)
+    @sql += " ORDER BY #{@primary_key} #{dir.to_s.upcase}"
+    self
   end
 
   def query(sql=@sql, cache: true)
