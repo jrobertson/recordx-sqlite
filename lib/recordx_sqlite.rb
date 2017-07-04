@@ -9,7 +9,7 @@ require 'recordx'
 class RecordxSqlite
 
   def initialize(dbfile, table: '', primary_key: :id, pk: primary_key, 
-                 sql: nil)
+                 sql: nil, pagesize: 10)
         
     @db = SQLite3::Database.new dbfile
 
@@ -31,7 +31,7 @@ class RecordxSqlite
     
     @sql =  sql || 'select * from ' + @table.to_s
     @default_sql = @sql
-    
+    @pagesize = pagesize
     @a = nil
     
   end
@@ -82,6 +82,13 @@ class RecordxSqlite
   def order(dir=:asc)
     @sql += " ORDER BY #{@primary_key} #{dir.to_s.upcase}"
     self
+  end
+  
+  def page(n=1)
+    
+    query(@sql + " ORDER BY %s DESC LIMIT %s OFFSET %s" % 
+          [@primary_key, @pagesize, @pagesize*(n-1)], cache: false)
+
   end
 
   def query(sql=@sql, cache: true)
