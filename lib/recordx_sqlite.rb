@@ -9,9 +9,11 @@ require 'recordx'
 class RecordxSqlite
 
   def initialize(dbfile, table: '', primary_key: :id, pk: primary_key, 
-                 sql: nil, pagesize: 10)
-        
-    @db = SQLite3::Database.new dbfile
+                 sql: nil, pagesize: 10, debug: true)
+
+    @debug = debug
+    sqlite = dbfile =~ /^sqlite:\/\// ? DRbSQLite : SQLite3::Database    
+    @db = sqlite.new dbfile, debug: debug    
 
     @db.results_as_hash = true
     
