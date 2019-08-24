@@ -4,12 +4,13 @@
 
 require 'sqlite3'
 require 'recordx'
+require 'drb_sqlite'
 
 
 class RecordxSqlite
 
-  def initialize(dbfile, table: '', primary_key: :id, pk: primary_key, 
-                 sql: nil, pagesize: 10, debug: true)
+  def initialize(dbfile, table: nil, primary_key: :id, pk: primary_key, 
+                 sql: nil, pagesize: 10, debug: false)
 
     @debug = debug
     sqlite = dbfile =~ /^sqlite:\/\// ? DRbSQLite : SQLite3::Database    
@@ -28,6 +29,19 @@ class RecordxSqlite
       @primary_key = h[@table].keys.first
       
       create_table(@table, h[@table]) if @db.table_info(@table).empty?
+      
+    else
+      
+      if @db.respond_to? :tables then
+        @table = @db.tables.first
+        @primary_key = @db.fields(@table).first
+      else
+        sql = "SELECT name FROM sqlite_master WHERE type='table';"
+        a = @db.execute(sql).flat_map(&:to_a)        
+        sys = a.grep /^sqlite_/
+        @table = (a - sys).first
+        @primary_key = @db.table_info(@table).map {|x| x['name'].to_sym }.first
+      end
             
     end
     
@@ -93,9 +107,20 @@ class RecordxSqlite
 
   end
 
-  def query(sql=@sql, cache: true)
-    
-    rs = @db.query sql
+  def query(sql=@sql, cache: true, heading: true)
+        
+    if heading then
+      
+      rs = @db.query sql
+      
+    else
+      
+      @db.results_as_hash = false
+      rs = @db.query(sql).to_a
+      @db.results_as_hash = true
+      
+      return rs 
+    end
     
     a = rs.map do |h| 
       h2 = h.inject({}) {|r, x| k, v = x; r.merge(k.to_sym => v)}
