@@ -14,7 +14,7 @@ class RecordxSqlite
 
     @debug = debug
     sqlite = dbfile =~ /^sqlite:\/\// ? DRbSQLite : SQLite3::Database    
-    @db = sqlite.new dbfile, debug: debug    
+    @db = sqlite.new dbfile
 
     @db.results_as_hash = true
     
@@ -36,19 +36,41 @@ class RecordxSqlite
         @table = @db.tables.first
         @primary_key = @db.fields(@table).first
       else
+        
         sql = "SELECT name FROM sqlite_master WHERE type='table';"
-        a = @db.execute(sql).flat_map(&:to_a)        
+        r = @db.execute(sql)
+        puts 'r: ' + r.inspect if @debug
+        
+        a = r.map {|x| x['name']}
+        puts 'a: ' + a.inspect if @debug
+        
         sys = a.grep /^sqlite_/
         @table = (a - sys).first
+        puts '@table: ' + @table.inspect if @debug
+        
         @primary_key = @db.table_info(@table).map {|x| x['name'].to_sym }.first
+        puts '@primary_key: ' + @primary_key.inspect if @debug
+        
       end
             
     end
     
-    @sql =  sql || 'select * from ' + @table.to_s
+    @sql =  sql = 'select * from ' + @table.to_s
     @default_sql = @sql
     @pagesize = pagesize
     @a = nil
+    
+    # create the fhe find_by methods for each fields
+    @db.table_info(@table).each do |cols|
+      #puts 'cols: ' + cols.inspect
+      define_singleton_method ('find_by_' + cols['name']).to_sym do |val|
+        find_by(cols['name'], val)
+      end
+      
+      define_singleton_method ('find_all_by_' + cols['name']).to_sym do |val|
+        find_all_by(cols['name'], val)
+      end      
+    end
     
   end
 
@@ -88,6 +110,20 @@ class RecordxSqlite
     @a.find {|x| x.method(@primary_key).call == id}
     
   end
+  
+  def find_by(field, val)
+
+    query(@sql) unless @a
+    @a.find {|x| x.method(field).call == val}
+    
+  end
+
+  def find_all_by(field, val)
+
+    query(@sql) unless @a
+    @a.select {|x| x.method(field).call == val}
+    
+  end    
   
   # returns the 1st n rows
   #
