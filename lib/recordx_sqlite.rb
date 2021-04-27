@@ -121,7 +121,7 @@ class RecordxSqlite
   def find_all_by(field, val)
 
     query(@sql) unless @a
-    @a.select {|x| x.method(field).call == val}
+    @a.select {|x| x.method(field).call.downcase == val.downcase}
     
   end    
   
